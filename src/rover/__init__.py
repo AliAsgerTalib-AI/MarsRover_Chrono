@@ -22,6 +22,7 @@ from .terrain_config import (
     TerrainPreset,
     TerrainPresetLibrary,
 )
+from .visualizer import Visualizer, VisualizationConfig, create_visualizer_for_scenario
 
 __version__ = "0.1.0"
 __author__ = "ChronoRover Contributors"
@@ -62,4 +63,8 @@ __all__ = [
     # Metrics
     "MetricsCollector",
     "MetricFrame",
+    # Visualization
+    "Visualizer",
+    "VisualizationConfig",
+    "create_visualizer_for_scenario",
 ]

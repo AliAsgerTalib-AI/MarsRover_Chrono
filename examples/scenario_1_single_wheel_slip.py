@@ -5,6 +5,10 @@ This characterizes wheel-terrain interaction and traction performance.
 
 Original: rover_sandbox1.py (150 lines)
 Refactored: 35 lines of application code
+
+Usage:
+    python scenario_1_single_wheel_slip.py              # No visualization
+    python scenario_1_single_wheel_slip.py --visualize  # With 3D viewer
 """
 
 import sys
@@ -24,11 +28,16 @@ from rover import (
     SystemFactory,
     TerrainManager,
     WheelBuilder,
+    Visualizer,
 )
 
 
-def main():
-    """Run scenario 1: Single wheel slip sweep."""
+def main(visualize=False):
+    """Run scenario 1: Single wheel slip sweep.
+
+    Args:
+        visualize: If True, open 3D viewer for real-time visualization
+    """
     print("\n" + "=" * 85)
     print("SCENARIO 1: SINGLE WHEEL SLIP-SINKAGE CHARACTERIZATION")
     print("=" * 85)
@@ -67,6 +76,15 @@ def main():
     metrics = MetricsCollector(output_freq=0.5)
     metrics.print_header()
 
+    # Setup visualization if requested
+    viz = None
+    if visualize:
+        try:
+            viz = Visualizer(system, title="Scenario 1: Wheel Slip", follow_body=chassis)
+            print("3D Viewer opened - close window to continue\n")
+        except ImportError as e:
+            print(f"Warning: Visualization not available ({e})\n")
+
     # Simulation loop
     time_step = 0.01
     sim_time = 0.0
@@ -86,6 +104,15 @@ def main():
             )
             metrics.print_frame(frame)
 
+        # Render visualization if active
+        if viz:
+            try:
+                viz.vis.Render()
+                if not viz.vis.Run():
+                    break  # Window closed
+            except:
+                viz = None
+
         sim_time += time_step
 
     print("=" * 85)
@@ -94,4 +121,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Scenario 1: Single Wheel Slip")
+    parser.add_argument(
+        "--visualize",
+        action="store_true",
+        help="Open 3D viewer for real-time visualization"
+    )
+    args = parser.parse_args()
+    main(visualize=args.visualize)

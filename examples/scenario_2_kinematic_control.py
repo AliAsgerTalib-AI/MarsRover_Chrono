@@ -6,6 +6,10 @@ This decouples horizontal motion from vertical loading for cleaner terramechanic
 
 Original: rover_sandbox2.py (137 lines)
 Refactored: 45 lines of application code
+
+Usage:
+    python scenario_2_kinematic_control.py              # No visualization
+    python scenario_2_kinematic_control.py --visualize  # With 3D viewer
 """
 
 import sys
@@ -26,11 +30,16 @@ from rover import (
     SystemFactory,
     TerrainManager,
     WheelBuilder,
+    Visualizer,
 )
 
 
-def main():
-    """Run scenario 2: Kinematic carriage control."""
+def main(visualize=False):
+    """Run scenario 2: Kinematic carriage control.
+
+    Args:
+        visualize: If True, open 3D viewer for real-time visualization
+    """
     print("\n" + "=" * 85)
     print("SCENARIO 2: KINEMATICALLY CONTROLLED CHASSIS WITH VERTICAL SETTLEMENT")
     print("=" * 85)
@@ -77,6 +86,19 @@ def main():
     # Vertical prismatic constraint: carriage ↔ chassis
     CarriageConstraint.create_vertical_lock(system, carriage, chassis, chassis.GetPos())
 
+    # Setup visualization if requested
+    viz = None
+    if visualize:
+        try:
+            viz = Visualizer(
+                system,
+                title="Scenario 2: Kinematic Control",
+                follow_body=chassis
+            )
+            print("3D Viewer opened - close window to continue\n")
+        except ImportError as e:
+            print(f"Warning: Visualization not available ({e})\n")
+
     # Setup metrics collection
     metrics = MetricsCollector(output_freq=0.5)
     metrics.print_header()
@@ -100,6 +122,15 @@ def main():
             )
             metrics.print_frame(frame)
 
+        # Render visualization if active
+        if viz:
+            try:
+                viz.vis.Render()
+                if not viz.vis.Run():
+                    break  # Window closed
+            except:
+                viz = None
+
         sim_time += time_step
 
     print("=" * 85)
@@ -108,4 +139,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Scenario 2: Kinematic Control")
+    parser.add_argument(
+        "--visualize",
+        action="store_true",
+        help="Open 3D viewer for real-time visualization"
+    )
+    args = parser.parse_args()
+    main(visualize=args.visualize)
